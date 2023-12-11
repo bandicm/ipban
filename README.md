@@ -1,3 +1,3 @@
 # ipban
 
-Ban an IP in time over UFW
+A library for managing IP address bans on UFW systems

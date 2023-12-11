@@ -1,0 +1,1 @@
+g++ test.cpp ../src/*.cpp ../exec/src/*.cpp -o test
