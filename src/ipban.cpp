@@ -10,9 +10,7 @@ marcelb::ipban::ipban(const uint& _duration, const string& _db_file) {
             sleep_if(BOT_LOOP_TIME, run_unban_bot);
             for (uint i=0; i<banned.size(); i++) {
                 if (difftime(time(NULL), banned[i]._time) >= ban_duration) {
-                    if (!unban(banned.begin() + i)) {
-                        cout << "[ERROR] Unban is not done properly! " << endl;
-                    }
+                    unban(banned.begin() + i);
                 }
             }
         }
@@ -23,9 +21,14 @@ marcelb::ipban::ipban(const uint& _duration, const string& _db_file) {
 marcelb::ipban::~ipban() {
     run_unban_bot = false;
     unban_bot.get();
-    for (uint i=0; i<banned.size(); i++) {
-        unban(banned.begin() + i);
-    }
+
+    /**
+     * ako aplikaciju sruši napadač - želimo da ostane banovan - unbanovat će se po isteku intervala
+    */
+
+    // for (uint i=0; i<banned.size(); i++) {
+    //     unban(banned.begin() + i);
+    // }
 }
 
 void marcelb::ipban::load_db() {
