@@ -23,15 +23,32 @@ int main() {
     ipban myban(1);
     // myban.ban("192.168.2.74");
     // sleep(300);
-    uint i=0;
+    // uint i=0;
 
-    while (i<10) {
-        string ip = generateRandomIP();
-        cout << "Ban " << ip << endl;
-        myban.ban(ip);
-        sleep(30);
-        i++;
-    }
+    // while (i<10) {
+    //     string ip = generateRandomIP();
+    //     cout << "Ban " << ip << endl;
+    //     myban.ban(ip);
+    //     sleep(30);
+    //     i++;
+    // }
+
+
+    myban.fail("192.168.2.74");
+    sleep(2);
+    myban.fail("192.168.2.74");
+    sleep(200);
+    // myban.fail("192.168.2.74");
+    // sleep(120);
+
+    // myban.unfail("192.168.2.74");
+    // sleep(2);
+    // myban.fail("192.168.2.74");
+    // sleep(120);
+
+
+
+
 
     return 0;
 }

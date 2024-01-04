@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
 #include <string>
 #include <future>
 #include <mutex>
@@ -30,15 +31,26 @@ struct _ban {
 };
 
 /**
+ * Pomoćna struktura - za praćenje broja pogrešaka
+*/
+struct _fail {
+    time_t first_fail;
+    uint n_fails = 0;
+};
+
+/**
  * Biblioteka za ban IP adrese kroz UFW vatrozid na određeno vrijeme
  * Automatski uklanja zabranu po isteku vremena
  * Posjeduje vlastiti DB mehanizam za zaštitu od nepovratnog ban-a
 */
 class ipban {
-    mutex io;
+    mutex io, f_io;
     time_t ban_duration;
+    uint fail_interval;
+    uint fail_limit;
     string db_file;
     vector<_ban> banned;
+    map<string, struct _fail> failed;
     future<void> unban_bot;
     bool run_unban_bot = true;
     // interface možda bude trebao za ban
@@ -71,16 +83,30 @@ class ipban {
     public:
 
     /**
-     * Konstruktor, prima zadanu vrijednost trajanja ban-a u minutama
+     * Konstruktor, prima zadanu vrijednost trajanja ban-a u minutama, 
+     * vrijeme praćenja pogreške adrese, broj dozvoljenih pogreški
      * i putanju datoteke baze podataka
     */
-    ipban(const uint& _duration, const string& db_file = "ipban.db");    // u minutama?
+    ipban(const uint& _duration, const uint& _fail_interval = 30, const uint& _fail_limit = 3, const string& db_file = "ipban.db");    // u minutama?
 
     /**
      * Metoda koja banuje proslijeđenu IP adresu, dodaje je u vector banned, ažurira bazu
      * Vraća status operacije
     */
     bool ban(const string& ip);
+
+    /**
+     * Inkrementalno povećaj broj grešaka za prosljeđenu adresu
+     * ako se prekorači broj dozvoljenih grešaka u intervalu - adresa se banuje
+    */
+
+    void fail(const string& ip);
+
+    /**
+     * Uklanja greške za prosljeđenu adresu
+    */
+
+    bool unfail(const string& ip);
 
     /**
      * Destruktor, uklanja sve zabrane.

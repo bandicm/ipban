@@ -1,7 +1,9 @@
 #include "../lib/ipban.hpp"
 
-marcelb::ipban::ipban(const uint& _duration, const string& _db_file) {
+marcelb::ipban::ipban(const uint& _duration, const uint& _fail_interval, const uint& _fail_limit, const string& _db_file) {
     ban_duration = _duration*60;
+    fail_interval = _fail_interval*60;
+    fail_limit = _fail_limit;
     db_file = _db_file;
     load_db();
 
@@ -11,6 +13,15 @@ marcelb::ipban::ipban(const uint& _duration, const string& _db_file) {
             for (uint i=0; i<banned.size(); i++) {
                 if (difftime(time(NULL), banned[i]._time) >= ban_duration) {
                     unban(banned.begin() + i);
+                }
+            }
+            for (auto _failed = failed.begin(); _failed != failed.end(); ) {
+                if (difftime(time(NULL), _failed->second.first_fail) >= fail_interval && _failed != failed.end()) {
+                    f_io.lock();
+                    _failed = failed.erase(_failed);
+                    f_io.unlock();
+                } else {
+                    ++_failed;
                 }
             }
         }
@@ -105,6 +116,25 @@ bool marcelb::ipban::ufw_unban(const string& ip) {
     }
     return false;
 }
+
+
+void marcelb::ipban::fail(const string& ip) {
+    lock_guard<mutex> _io(f_io);
+    if (failed[ip].n_fails == 0) {
+        failed[ip].n_fails = 1;
+        failed[ip].first_fail = time(NULL);
+    } else if (++failed[ip].n_fails >= fail_limit) {
+        ban(ip);
+        failed.erase(ip);
+    }
+}
+
+
+bool marcelb::ipban::unfail(const string& ip) {
+    lock_guard<mutex> _io(f_io);
+    return failed.erase(ip);;
+}
+
 
 static void marcelb::sleep_if(const uint& _time, const bool& _condition) {
     time_t start_time = time(NULL);
