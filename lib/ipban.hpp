@@ -8,6 +8,7 @@
 #include <future>
 #include <mutex>
 #include <fstream>
+#include <algorithm>
 
 #include <time.h>
 #include <unistd.h>
@@ -44,13 +45,14 @@ struct _fail {
  * Posjeduje vlastiti DB mehanizam za zaštitu od nepovratnog ban-a
 */
 class ipban {
-    mutex io, f_io;
+    mutex io, f_io, wl_io;
     time_t ban_duration;
     uint fail_interval;
     uint fail_limit;
     string db_file;
     vector<_ban> banned;
     map<string, struct _fail> failed;
+    vector<string> white_list;
     future<void> unban_bot;
     bool run_unban_bot = true;
     // interface možda bude trebao za ban
@@ -100,13 +102,32 @@ class ipban {
      * ako se prekorači broj dozvoljenih grešaka u intervalu - adresa se banuje
     */
 
-    void fail(const string& ip);
+    bool fail(const string& ip);
 
     /**
      * Uklanja greške za prosljeđenu adresu
     */
 
     bool unfail(const string& ip);
+
+    /**
+     * Dodaje proslijeđenu adresu u white listu
+    */
+
+    void add_white_list(const string& ip);
+
+    /**
+     * Dodaje proslijeđene adrese u white listu
+    */
+
+    void add_white_list(const vector<string>& ips);
+
+    /**
+     * Provjerava da li je prosljeđena adresa u white listi
+     * Ako je vraća true, ako ne false
+    */
+
+    bool is_in_white_list(const string& ip);
 
     /**
      * Destruktor, uklanja sve zabrane.

@@ -73,11 +73,14 @@ bool marcelb::ipban::update_db() {
 }
 
 bool marcelb::ipban::ban(const string& ip) {
-    bool status = ufw_ban(ip);
-    io.lock();
-    banned.push_back({ip, time(NULL)});
-    status = status && update_db();
-    io.unlock();
+    bool status = !is_in_white_list(ip);
+    if (status) {
+        status = ufw_ban(ip);
+        io.lock();
+        banned.push_back({ip, time(NULL)});
+        status = status && update_db();
+        io.unlock();
+    }
     return status;
 }
 
@@ -91,7 +94,7 @@ bool marcelb::ipban::unban(vector<_ban>::iterator ban_itr) {
 }
 
 bool marcelb::ipban::ufw_ban(const string& ip) {
-    string ufw_cmd = "sudo ufw deny from " + ip + " to any";
+    string ufw_cmd = "sudo ufw insert 1 deny from " + ip + " to any";
     try {
         string execute_res = exec(ufw_cmd);
         if (execute_res == "Rule added\n") {
@@ -118,21 +121,45 @@ bool marcelb::ipban::ufw_unban(const string& ip) {
 }
 
 
-void marcelb::ipban::fail(const string& ip) {
+bool marcelb::ipban::fail(const string& ip) {
     lock_guard<mutex> _io(f_io);
-    if (failed[ip].n_fails == 0) {
-        failed[ip].n_fails = 1;
-        failed[ip].first_fail = time(NULL);
-    } else if (++failed[ip].n_fails >= fail_limit) {
-        ban(ip);
-        failed.erase(ip);
+    bool status = !is_in_white_list(ip);
+    if (status) {
+        if (failed[ip].n_fails == 0) {
+            failed[ip].n_fails = 1;
+            failed[ip].first_fail = time(NULL);
+        } else if (++failed[ip].n_fails >= fail_limit) {
+            ban(ip);
+            failed.erase(ip);
+        }
     }
+    return status;
 }
 
 
 bool marcelb::ipban::unfail(const string& ip) {
     lock_guard<mutex> _io(f_io);
     return failed.erase(ip);;
+}
+
+
+void marcelb::ipban::add_white_list(const string& ip) {
+    lock_guard<mutex> _io(wl_io);
+    if (find(white_list.begin(), white_list.end(), ip) == white_list.end()) {
+        white_list.push_back(ip);
+    }
+}
+
+
+void marcelb::ipban::add_white_list(const vector<string>& ips) {
+    for (auto ip : ips) {
+        add_white_list(ip);
+    }
+}
+
+
+bool marcelb::ipban::is_in_white_list(const string& ip) {
+    return find(white_list.begin(), white_list.end(), ip) != white_list.end();
 }
 
 
