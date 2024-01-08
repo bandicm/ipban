@@ -23,8 +23,8 @@ namespace marcelb {
 #define BOT_SLEEP_LOOP_TIME 1 // 1 second
 
 /**
- * Banovani objekt 
- * IP adresa i vrijeme banovanja
+ * Banned object
+ * IP address and ban time
 */
 struct _ban {
     string ip;
@@ -32,7 +32,7 @@ struct _ban {
 };
 
 /**
- * Pomoćna struktura - za praćenje broja pogrešaka
+ * Auxiliary structure - to track the number of errors
 */
 struct _fail {
     time_t first_fail;
@@ -40,9 +40,9 @@ struct _fail {
 };
 
 /**
- * Biblioteka za ban IP adrese kroz UFW vatrozid na određeno vrijeme
- * Automatski uklanja zabranu po isteku vremena
- * Posjeduje vlastiti DB mehanizam za zaštitu od nepovratnog ban-a
+ * Library to ban IP addresses through the UFW firewall for a certain period of time
+ * Automatically removes ban after timeout
+ * It has its own DB mechanism for protection against irreversible ban
 */
 class ipban {
     mutex io, f_io, wl_io;
@@ -55,90 +55,84 @@ class ipban {
     vector<string> white_list;
     future<void> unban_bot;
     bool run_unban_bot = true;
-    // interface možda bude trebao za ban
     
     /**
-     * Metoda učitava banovane IP adrese iz baze
+     * The method loads banned IP addresses from the database
     */
     void load_db();
 
     /**
-     * Metoda ažurira stanja baze sa stanjima iz memorije
+     * The method updates database states with memory states
     */
     bool update_db();
 
     /**
-     * Metoda uklanja ban za proslijeđeni iterator vektora banned i ažurira bazu
+     * The method removes the ban for the passed iterator of the banned vector and updates the base
     */
     bool unban(vector<_ban>::iterator ban_itr);
 
     /**
-     * Metoda poziva exec i dodaje pravila u UFW vatrozid
+     * Method calls exec and adds rules to UFW firewall
     */
     bool ufw_ban(const string& ip);
 
     /**
-     * Metoda poziva exec i uklanja pravilo u UFW vatrozidu
+     * The method calls exec and removes the rule in the UFW firewall
     */
     bool ufw_unban(const string& ip);
+
+    /**
+     * Checks whether the forwarded address is in the white list
+     * If it returns true, if not false
+    */
+    bool is_in_white_list(const string& ip);
 
     public:
 
     /**
-     * Konstruktor, prima zadanu vrijednost trajanja ban-a u minutama, 
-     * vrijeme praćenja pogreške adrese, broj dozvoljenih pogreški
-     * i putanju datoteke baze podataka
+     * Constructor, receives the default value of the duration of the ban in minutes,
+     * address error tracking time, number of allowed errors
+     * and the database file path
     */
     ipban(const uint& _duration, const uint& _fail_interval = 30, const uint& _fail_limit = 3, const string& db_file = "ipban.db");    // u minutama?
 
     /**
-     * Metoda koja banuje proslijeđenu IP adresu, dodaje je u vector banned, ažurira bazu
-     * Vraća status operacije
+     * The method that bans the forwarded IP address, adds it to the banned vector, updates the database
+     * Returns the status of the operation
     */
     bool ban(const string& ip);
 
     /**
-     * Inkrementalno povećaj broj grešaka za prosljeđenu adresu
-     * ako se prekorači broj dozvoljenih grešaka u intervalu - adresa se banuje
+     * Incrementally increase the number of errors for the forwarded address
+     * if the number of allowed errors in the interval is exceeded - the address is banned
     */
-
     bool fail(const string& ip);
 
     /**
-     * Uklanja greške za prosljeđenu adresu
+     * Removes errors for forwarded address
     */
-
     bool unfail(const string& ip);
 
     /**
-     * Dodaje proslijeđenu adresu u white listu
+     * Adds the forwarded address to the white list
     */
-
     void add_white_list(const string& ip);
 
     /**
-     * Dodaje proslijeđene adrese u white listu
+     * Adds forwarded addresses to the white list
     */
-
     void add_white_list(const vector<string>& ips);
 
     /**
-     * Provjerava da li je prosljeđena adresa u white listi
-     * Ako je vraća true, ako ne false
-    */
-
-    bool is_in_white_list(const string& ip);
-
-    /**
-     * Destruktor, uklanja sve zabrane.
+     * Destructor
     */
     ~ipban();
 
 };
 
 /**
- * Funkcija za mirovanje tijeka, koj miruje do isteka vremena ili logičkog stanja uvijeta
- * Prima vrijeme u sekundama, i logički uvijet
+ * Sleep function, which sleeps until timeout or logic condition condition
+ * Receives time in seconds, and logical condition
 */
 static void sleep_if(const uint& _time, const bool& _condition);
 
