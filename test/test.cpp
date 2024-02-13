@@ -33,24 +33,23 @@ int main() {
     //     i++;
     // }
 
-    myban.add_white_list("192.168.2.74");
+    // myban.add_white_list("192.168.2.74");
 
 
-    cout << myban.ban("192.168.2.74") << endl;
-    sleep(2);
-    cout << myban.ban("192.168.2.75") << endl;
-    sleep(200);
+    // cout << myban.ban("192.168.2.74") << endl;
+    // sleep(2);
+    // cout << myban.ban("192.168.2.75") << endl;
+    // // sleep(200);
     // myban.fail("192.168.2.74");
-    // sleep(120);
+    // sleep(5);
 
-    // myban.unfail("192.168.2.74");
+    // // myban.unfail("192.168.2.74");
     // sleep(2);
     // myban.fail("192.168.2.74");
-    // sleep(120);
+    // sleep(5);
+    // myban.fail("192.168.2.74");
 
-
-
-
+    sleep(100);
 
     return 0;
 }

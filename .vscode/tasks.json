@@ -9,7 +9,7 @@
                 "-g",
                 "${fileDirname}/test.cpp",
 				"${fileDirname}/../src/*.cpp",
-                "${fileDirname}/../exec/src/*.cpp",
+                "${fileDirname}/../../exec/src/*.cpp",
                 "-o",
                 "${fileDirname}/test.o"
             ],

@@ -32,14 +32,6 @@ marcelb::ipban::ipban(const uint& _duration, const uint& _fail_interval, const u
 marcelb::ipban::~ipban() {
     run_unban_bot = false;
     unban_bot.get();
-
-    /**
-     * ako aplikaciju sruši napadač - želimo da ostane banovan - unbanovat će se po isteku intervala
-    */
-
-    // for (uint i=0; i<banned.size(); i++) {
-    //     unban(banned.begin() + i);
-    // }
 }
 
 void marcelb::ipban::load_db() {
@@ -78,7 +70,7 @@ bool marcelb::ipban::ban(const string& ip) {
         status = ufw_ban(ip);
         io.lock();
         banned.push_back({ip, time(NULL)});
-        status = status && update_db();
+        status &= update_db();
         io.unlock();
     }
     return status;
@@ -88,7 +80,7 @@ bool marcelb::ipban::unban(vector<_ban>::iterator ban_itr) {
     bool status = ufw_unban(ban_itr->ip);
     io.lock();
     banned.erase(ban_itr);
-    status = status && update_db();
+    status &= update_db();
     io.unlock();
     return status;
 }
