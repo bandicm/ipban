@@ -67,6 +67,9 @@ bool marcelb::ipban::update_db() {
 bool marcelb::ipban::ban(const string& ip) {
     bool status = !is_in_white_list(ip);
     if (status) {
+        if (is_banned(ip)) {
+            return status;
+        }
         status = ufw_ban(ip);
         io.lock();
         banned.push_back({ip, time(NULL)});
@@ -83,6 +86,16 @@ bool marcelb::ipban::unban(vector<_ban>::iterator ban_itr) {
     status &= update_db();
     io.unlock();
     return status;
+}
+
+bool marcelb::ipban::is_banned(const string& ip) {
+    auto it = std::find_if(banned.begin(), banned.end(), [&](const struct _ban& an_ban){
+        return an_ban.ip == ip;
+    });
+    if (it == banned.end()) {
+        return false;
+    }
+    return true;
 }
 
 bool marcelb::ipban::ufw_ban(const string& ip) {

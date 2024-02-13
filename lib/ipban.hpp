@@ -72,6 +72,11 @@ class ipban {
     bool unban(vector<_ban>::iterator ban_itr);
 
     /**
+     * The method checks if the forwarding ip address is currently banned
+    */
+    bool is_banned(const string& ip);
+
+    /**
      * Method calls exec and adds rules to UFW firewall
     */
     bool ufw_ban(const string& ip);

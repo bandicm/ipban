@@ -36,7 +36,7 @@ int main() {
     // myban.add_white_list("192.168.2.74");
 
 
-    // cout << myban.ban("192.168.2.74") << endl;
+    cout << myban.ban("192.168.2.74") << endl;
     // sleep(2);
     // cout << myban.ban("192.168.2.75") << endl;
     // // sleep(200);
