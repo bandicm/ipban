@@ -66,25 +66,33 @@ bool marcelb::ipban::update_db() {
 
 bool marcelb::ipban::ban(const string& ip) {
     bool status = !is_in_white_list(ip);
+    if (!status) {
+        return status;
+    }
+    if (is_banned(ip)) {
+        return status;
+    }
+    
+    status = ufw_ban(ip);
+
     if (status) {
-        if (is_banned(ip)) {
-            return status;
-        }
-        status = ufw_ban(ip);
         io.lock();
         banned.push_back({ip, time(NULL)});
-        status &= update_db();
+        status = update_db();
         io.unlock();
     }
+
     return status;
 }
 
 bool marcelb::ipban::unban(vector<_ban>::iterator ban_itr) {
     bool status = ufw_unban(ban_itr->ip);
-    io.lock();
-    banned.erase(ban_itr);
-    status &= update_db();
-    io.unlock();
+    if (status) {
+        io.lock();
+        banned.erase(ban_itr);
+        status = update_db();
+        io.unlock();
+    }
     return status;
 }
 
@@ -102,7 +110,7 @@ bool marcelb::ipban::ufw_ban(const string& ip) {
     string ufw_cmd = "sudo ufw insert 1 deny from " + ip + " to any";
     try {
         string execute_res = exec(ufw_cmd);
-        if (execute_res == "Rule added\n") {
+        if (execute_res == "Rule added\n" || execute_res == "Rule inserted\n") {
             return true;
         }
     } catch (const string except) {

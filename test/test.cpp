@@ -37,9 +37,9 @@ int main() {
 
 
     cout << myban.ban("192.168.2.74") << endl;
-    // sleep(2);
-    // cout << myban.ban("192.168.2.75") << endl;
-    // // sleep(200);
+    sleep(5);
+    cout << myban.ban("192.168.2.74") << endl;
+    sleep(200);
     // myban.fail("192.168.2.74");
     // sleep(5);
 
